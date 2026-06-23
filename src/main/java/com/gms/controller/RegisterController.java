@@ -2,7 +2,6 @@ package com.gms.controller;
 
 import com.gms.entity.*;
 import com.gms.service.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,12 +13,26 @@ import java.util.List;
 @Controller
 public class RegisterController {
 
-    @Autowired private StudentService studentService;
-    @Autowired private TeacherService teacherService;
-    @Autowired private DepartmentService departmentService;
-    @Autowired private MajorService majorService;
-    @Autowired private ClassInfoService classInfoService;
-    @Autowired private BCryptPasswordEncoder passwordEncoder;
+    private final StudentService studentService;
+    private final TeacherService teacherService;
+    private final DepartmentService departmentService;
+    private final MajorService majorService;
+    private final ClassInfoService classInfoService;
+    private final BCryptPasswordEncoder passwordEncoder;
+
+    public RegisterController(StudentService studentService,
+                              TeacherService teacherService,
+                              DepartmentService departmentService,
+                              MajorService majorService,
+                              ClassInfoService classInfoService,
+                              BCryptPasswordEncoder passwordEncoder) {
+        this.studentService = studentService;
+        this.teacherService = teacherService;
+        this.departmentService = departmentService;
+        this.majorService = majorService;
+        this.classInfoService = classInfoService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @GetMapping("/register")
     public String registerPage(Model model) {
@@ -46,13 +59,10 @@ public class RegisterController {
                              @RequestParam(required = false) String researchDirection,
                              RedirectAttributes redirectAttributes) {
 
-        // 1. Validate passwords match
         if (!password.equals(confirmPassword)) {
             redirectAttributes.addFlashAttribute("error", "两次输入的密码不一致");
             return "redirect:/register";
         }
-
-        // 2. Validate password length
         if (password.length() < 6) {
             redirectAttributes.addFlashAttribute("error", "密码长度不能少于6位");
             return "redirect:/register";
@@ -61,12 +71,10 @@ public class RegisterController {
         String encodedPwd = passwordEncoder.encode(password);
 
         if ("STUDENT".equals(role)) {
-            // Validate student fields
             if (classId == null) {
                 redirectAttributes.addFlashAttribute("error", "请选择班级");
                 return "redirect:/register";
             }
-            // Check duplicate stuId
             if (studentService.getById(userId) != null) {
                 redirectAttributes.addFlashAttribute("error", "该学号已被注册");
                 return "redirect:/register";
@@ -76,17 +84,15 @@ public class RegisterController {
             student.setStuName(userName);
             student.setPassword(encodedPwd);
             student.setClassId(classId);
-            student.setPhone(phone);
-            student.setEmail(email);
+            student.setPhone(blankToNull(phone));
+            student.setEmail(blankToNull(email));
             studentService.save(student);
 
         } else if ("TEACHER".equals(role)) {
-            // Validate teacher fields
             if (deptId == null) {
                 redirectAttributes.addFlashAttribute("error", "请选择所属院系");
                 return "redirect:/register";
             }
-            // Check duplicate teacherId
             if (teacherService.getById(userId) != null) {
                 redirectAttributes.addFlashAttribute("error", "该工号已被注册");
                 return "redirect:/register";
@@ -98,9 +104,9 @@ public class RegisterController {
             teacher.setDeptId(deptId);
             teacher.setTitle(title);
             teacher.setResearchDirection(researchDirection);
-            teacher.setPhone(phone);
-            teacher.setEmail(email);
-            teacher.setMaxStudents(5); // default
+            teacher.setPhone(blankToNull(phone));
+            teacher.setEmail(blankToNull(email));
+            teacher.setMaxStudents(5);
             teacherService.save(teacher);
 
         } else {
@@ -110,5 +116,10 @@ public class RegisterController {
 
         redirectAttributes.addFlashAttribute("success", "注册成功，请登录");
         return "redirect:/login";
+    }
+
+    /** 空字符串转 null，避免 CHECK 约束报错 */
+    private String blankToNull(String s) {
+        return (s == null || s.trim().isEmpty()) ? null : s;
     }
 }

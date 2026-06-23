@@ -282,6 +282,42 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
+    @GetMapping("/user/delete-student/{stuId}")
+    public String deleteStudent(@PathVariable String stuId, HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
+        if (!isAdmin(session)) {
+            return "redirect:/login";
+        }
+        try {
+            // 先删选题（如有），再删学生
+            selectionService.remove(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Selection>()
+                .eq(Selection::getStuId, stuId));
+            studentService.removeById(stuId);
+            redirectAttributes.addFlashAttribute("success", "学生 " + stuId + " 已删除");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "删除失败: " + e.getMessage());
+        }
+        return "redirect:/admin/users";
+    }
+
+    @GetMapping("/user/delete-teacher/{teacherId}")
+    public String deleteTeacher(@PathVariable String teacherId, HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
+        if (!isAdmin(session)) {
+            return "redirect:/login";
+        }
+        try {
+            // 先删该教师的题目和选题，再删教师
+            topicService.remove(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Topic>()
+                .eq(Topic::getTeacherId, teacherId));
+            teacherService.removeById(teacherId);
+            redirectAttributes.addFlashAttribute("success", "教师 " + teacherId + " 已删除");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "删除失败: " + e.getMessage());
+        }
+        return "redirect:/admin/users";
+    }
+
     // ==================== Statistics ====================
     @GetMapping("/statistics")
     public String statistics(HttpSession session, Model model) {

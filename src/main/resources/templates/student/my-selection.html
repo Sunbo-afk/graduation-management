@@ -27,6 +27,16 @@
     <div class="main-content">
         <h3 class="mb-4"><i class="bi bi-check-circle me-2 text-success"></i>我的选题</h3>
 
+        <!-- Alert messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
         <!-- No Selection State -->
         <div th:unless="${selection != null}">
             <div class="text-center py-5">
@@ -90,44 +100,47 @@
                 </div>
             </div>
 
-            <!-- Submission History -->
+            <!-- Submit new document -->
             <div class="card mb-4">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0"><i class="bi bi-upload me-2 text-success"></i>提交记录</h5>
-                    <button class="btn btn-success btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#submitForm">
-                        <i class="bi bi-plus-lg me-1"></i>新建提交
-                    </button>
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="bi bi-upload me-2"></i>提交新文档</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Collapsible Submit Form -->
-                    <div class="collapse mb-4" id="submitForm">
-                        <div class="card bg-light">
-                            <div class="card-body">
-                                <h6 class="card-subtitle mb-3 text-muted"><i class="bi bi-pencil-square me-1"></i>提交文件</h6>
-                                <form th:action="@{/student/submit}" method="post">
-                                    <input type="hidden" name="selectionId" th:value="${selection?.selectionId}">
-                                    <div class="mb-3">
-                                        <label class="form-label">提交阶段</label>
-                                        <select name="stage" class="form-select" required>
-                                            <option value="开题报告">开题报告</option>
-                                            <option value="中期检查">中期检查</option>
-                                            <option value="初稿">初稿</option>
-                                            <option value="终稿">终稿</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">文件路径/链接</label>
-                                        <input type="text" name="filePath" class="form-control" placeholder="请输入文件路径或网盘链接" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">提交说明</label>
-                                        <textarea name="description" class="form-control" rows="3"></textarea>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">提交</button>
-                                </form>
+                    <form th:action="@{/student/submit}" method="post">
+                        <input type="hidden" name="selectionId" th:value="${selection?.selectionId}">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">提交阶段 <span class="text-danger">*</span></label>
+                                <select name="stage" class="form-select" required>
+                                    <option value="">请选择阶段</option>
+                                    <option value="开题报告">开题报告</option>
+                                    <option value="中期检查">中期检查</option>
+                                    <option value="初稿">初稿</option>
+                                    <option value="终稿">终稿</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label">文件路径/链接 <span class="text-danger">*</span></label>
+                                <input type="text" name="filePath" class="form-control" placeholder="文件路径或网盘链接" required>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-dark w-100">提交文档</button>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">提交说明</label>
+                                <textarea name="description" class="form-control" rows="2" placeholder="可选：对本次提交的补充说明"></textarea>
                             </div>
                         </div>
-                    </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Submission History -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="bi bi-clock-history me-2"></i>提交记录</h5>
+                </div>
+                <div class="card-body">
 
                     <!-- Submissions Table -->
                     <div th:if="${submissions != null and !submissions.isEmpty()}">

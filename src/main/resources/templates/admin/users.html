@@ -72,7 +72,7 @@
                                     <th>班级ID</th>
                                     <th style="width: 140px;">电话</th>
                                     <th style="width: 200px;">邮箱</th>
-                                    <th style="width: 120px;">操作</th>
+                                    <th style="width: 200px;">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -83,15 +83,21 @@
                                     <td th:text="${stu.phone}">13800138000</td>
                                     <td th:text="${stu.email}">zhangsan@example.com</td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-warning"
+                                        <button class="btn btn-sm btn-outline-warning me-1"
                                                 th:attr="data-type='student',data-id=${stu.stuId},data-name=${stu.stuName}"
                                                 onclick="resetPassword(this)">
                                             <i class="bi bi-key"></i> 重置密码
                                         </button>
+                                        <a class="btn btn-sm btn-outline-danger"
+                                           th:href="@{/admin/user/delete-student/{id}(id=${stu.stuId})}"
+                                           onclick="return confirm('确定要删除学生 ' + this.dataset.name + ' 吗？\n将同时删除其选题记录。')"
+                                           th:attr="data-name=${stu.stuName}">
+                                            <i class="bi bi-trash"></i> 删除
+                                        </a>
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(students)}">
-                                    <td colspan="6" class="text-center text-muted py-4">暂无学生数据</td>
+                                    <td colspan="7" class="text-center text-muted py-4">暂无学生数据</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -113,7 +119,7 @@
                                     <th style="width: 140px;">电话</th>
                                     <th style="width: 200px;">邮箱</th>
                                     <th style="width: 100px;">最大指导学生数</th>
-                                    <th style="width: 120px;">操作</th>
+                                    <th style="width: 200px;">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -126,15 +132,21 @@
                                     <td th:text="${tea.email}">liprof@example.com</td>
                                     <td th:text="${tea.maxStudents}">8</td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-warning"
+                                        <button class="btn btn-sm btn-outline-warning me-1"
                                                 th:attr="data-type='teacher',data-id=${tea.teacherId},data-name=${tea.teacherName}"
                                                 onclick="resetPassword(this)">
                                             <i class="bi bi-key"></i> 重置密码
                                         </button>
+                                        <a class="btn btn-sm btn-outline-danger"
+                                           th:href="@{/admin/user/delete-teacher/{id}(id=${tea.teacherId})}"
+                                           onclick="return confirm('确定要删除教师 ' + this.dataset.name + ' 吗？\n将同时删除其所有题目。')"
+                                           th:attr="data-name=${tea.teacherName}">
+                                            <i class="bi bi-trash"></i> 删除
+                                        </a>
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(teachers)}">
-                                    <td colspan="8" class="text-center text-muted py-4">暂无教师数据</td>
+                                    <td colspan="9" class="text-center text-muted py-4">暂无教师数据</td>
                                 </tr>
                             </tbody>
                         </table>
