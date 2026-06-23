@@ -92,6 +92,36 @@ public class TeacherController {
         return "teacher/index";
     }
 
+    // ==================== Update Max Students ====================
+    @PostMapping("/update-max-students")
+    public String updateMaxStudents(@RequestParam Integer maxStudents,
+                                    HttpSession session,
+                                    RedirectAttributes redirectAttributes) {
+        if (!isTeacher(session)) {
+            return "redirect:/login";
+        }
+        String teacherId = getTeacherId(session);
+        try {
+            Teacher teacher = teacherService.getById(teacherId);
+            if (teacher == null) {
+                redirectAttributes.addFlashAttribute("error", "修改失败: 教师信息不存在");
+                return "redirect:/teacher/index";
+            }
+            int currentCount = teacherService.countStudentsForTeacher(teacherId);
+            if (maxStudents < currentCount) {
+                redirectAttributes.addFlashAttribute("error",
+                        "修改失败: 最多指导学生数 (" + maxStudents + ") 不能少于当前指导学生数 (" + currentCount + ")");
+                return "redirect:/teacher/index";
+            }
+            teacher.setMaxStudents(maxStudents);
+            teacherService.updateById(teacher);
+            redirectAttributes.addFlashAttribute("success", "修改成功: 最多指导学生数已更新为 " + maxStudents);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "操作失败: " + e.getMessage());
+        }
+        return "redirect:/teacher/index";
+    }
+
     // ==================== Students ====================
     @GetMapping("/students")
     public String students(HttpSession session, Model model) {

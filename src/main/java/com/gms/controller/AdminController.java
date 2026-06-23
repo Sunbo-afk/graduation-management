@@ -282,6 +282,37 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
+    @PostMapping("/teacher/update-max-students")
+    public String updateTeacherMaxStudents(@RequestParam String teacherId,
+                                           @RequestParam Integer maxStudents,
+                                           HttpSession session,
+                                           RedirectAttributes redirectAttributes) {
+        if (!isAdmin(session)) {
+            return "redirect:/login";
+        }
+        try {
+            Teacher teacher = teacherService.getById(teacherId);
+            if (teacher == null) {
+                redirectAttributes.addFlashAttribute("error", "修改失败: 教师不存在");
+                return "redirect:/admin/users";
+            }
+            int currentCount = teacherService.countStudentsForTeacher(teacherId);
+            if (maxStudents < currentCount) {
+                redirectAttributes.addFlashAttribute("error",
+                        "修改失败: 教师 " + teacher.getTeacherName() + " 当前指导学生数为 " + currentCount
+                                + "，新上限 (" + maxStudents + ") 不能小于此数");
+                return "redirect:/admin/users";
+            }
+            teacher.setMaxStudents(maxStudents);
+            teacherService.updateById(teacher);
+            redirectAttributes.addFlashAttribute("success",
+                    "修改成功: 教师 " + teacher.getTeacherName() + " 最多指导学生数已更新为 " + maxStudents);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "操作失败: " + e.getMessage());
+        }
+        return "redirect:/admin/users";
+    }
+
     // ==================== Statistics ====================
     @GetMapping("/statistics")
     public String statistics(HttpSession session, Model model) {

@@ -40,7 +40,18 @@
                     <div class="col-md-6">
                         <table class="table table-borderless mb-0">
                             <tr><td class="text-muted" style="width:100px">研究方向</td><td th:text="${teacher?.researchDirection}"></td></tr>
-                            <tr><td class="text-muted">最多指导学生</td><td th:text="${teacher?.maxStudents}"></td></tr>
+                            <tr>
+                                <td class="text-muted">最多指导学生</td>
+                                <td>
+                                    <span th:text="${teacher?.maxStudents}"></span>
+                                    <button class="btn btn-sm btn-outline-primary ms-2" type="button"
+                                            th:attr="data-max=${teacher?.maxStudents},data-count=${studentCount}"
+                                            data-bs-toggle="modal" data-bs-target="#editMaxStudentsModal"
+                                            onclick="fillMaxStudentsModal(this)">
+                                        <i class="bi bi-pencil"></i> 修改
+                                    </button>
+                                </td>
+                            </tr>
                         </table>
                     </div>
                 </div>
@@ -87,6 +98,39 @@
             </div>
         </div>
     </div>
+    <!-- Edit Max Students Modal -->
+    <div class="modal fade" id="editMaxStudentsModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <form th:action="@{/teacher/update-max-students}" method="post">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">修改指导学生上限</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">最多指导学生数</label>
+                            <input type="number" class="form-control" id="editMaxStudents" name="maxStudents"
+                                   min="1" max="20" required>
+                            <div class="form-text text-warning" id="maxStudentsHint"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">确认修改</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function fillMaxStudentsModal(btn) {
+            document.getElementById('editMaxStudents').value = btn.dataset.max;
+            document.getElementById('maxStudentsHint').textContent =
+                '当前指导学生数: ' + btn.dataset.count + '（新值不能小于此数）';
+        }
+    </script>
 </body>
 </html>
