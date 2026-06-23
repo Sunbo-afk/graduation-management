@@ -1,0 +1,99 @@
+body {
+    font-family: Arial, "Microsoft YaHei", sans-serif;
+    margin: 0;
+    background: #f4f6f8;
+    color: #222;
+}
+
+.top {
+    background: #263238;
+    color: white;
+    padding: 14px 22px;
+}
+
+.top a {
+    color: white;
+    margin-right: 16px;
+    text-decoration: none;
+}
+
+.box {
+    margin: 20px;
+    padding: 18px;
+    background: white;
+    border: 1px solid #ddd;
+}
+
+input, select, textarea, button {
+    margin: 5px;
+    padding: 7px;
+}
+
+.form-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.form-line label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-line textarea {
+    width: 220px;
+    height: 38px;
+    vertical-align: middle;
+}
+
+.content-field {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.content-box {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.content-box textarea {
+    width: 260px;
+    height: 58px;
+}
+
+.content-box input[type="file"] {
+    margin: 0;
+}
+
+button {
+    background: #1e88e5;
+    color: white;
+    border: 0;
+    cursor: pointer;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    background: white;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background: #eceff1;
+}
+
+.message {
+    color: #c62828;
+    margin: 10px 0;
+}
