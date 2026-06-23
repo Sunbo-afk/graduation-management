@@ -1,4 +1,4 @@
-1package com.gms.config;
+package com.gms.config;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -33,4 +33,3 @@ public class LoginInterceptor implements HandlerInterceptor {
         return true;
     }
 }
-ti'ztiz

@@ -130,7 +130,15 @@
                                     <td th:text="${tea.title}">教授</td>
                                     <td th:text="${tea.phone}">13900139000</td>
                                     <td th:text="${tea.email}">liprof@example.com</td>
-                                    <td th:text="${tea.maxStudents}">8</td>
+                                    <td>
+                                        <span th:text="${tea.maxStudents}">8</span>
+                                        <button class="btn btn-sm btn-outline-secondary ms-1"
+                                                th:attr="data-id=${tea.teacherId},data-name=${tea.teacherName},data-max=${tea.maxStudents}"
+                                                data-bs-toggle="modal" data-bs-target="#maxStudentsModal"
+                                                onclick="editMaxStudents(this)">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                    </td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-warning me-1"
                                                 th:attr="data-type='teacher',data-id=${tea.teacherId},data-name=${tea.teacherName}"
@@ -180,6 +188,31 @@
         </div>
     </div>
 
+    <!-- Edit Max Students Modal -->
+    <div class="modal fade" id="maxStudentsModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <form th:action="@{/admin/teacher/update-max-students}" method="post">
+                    <input type="hidden" id="maxTeacherId" name="teacherId">
+                    <div class="modal-header">
+                        <h5 class="modal-title">设置最大指导学生数</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>教师：<strong id="maxTeacherName"></strong></p>
+                        <label class="form-label">最大指导学生数</label>
+                        <input type="number" class="form-control" name="maxStudents" id="maxStudentsInput"
+                               min="1" max="20" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-dark">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function resetPassword(btn) {
@@ -188,6 +221,11 @@
             document.getElementById('resetUserName').textContent = btn.dataset.name;
             var modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
             modal.show();
+        }
+        function editMaxStudents(btn) {
+            document.getElementById('maxTeacherId').value = btn.dataset.id;
+            document.getElementById('maxTeacherName').textContent = btn.dataset.name;
+            document.getElementById('maxStudentsInput').value = btn.dataset.max;
         }
     </script>
 </body>

@@ -318,6 +318,25 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
+    @PostMapping("/teacher/update-max-students")
+    public String updateMaxStudents(@RequestParam String teacherId, @RequestParam Integer maxStudents,
+                                     HttpSession session, RedirectAttributes redirectAttributes) {
+        if (!isAdmin(session)) {
+            return "redirect:/login";
+        }
+        try {
+            Teacher teacher = teacherService.getById(teacherId);
+            if (teacher != null) {
+                teacher.setMaxStudents(maxStudents);
+                teacherService.updateById(teacher);
+                redirectAttributes.addFlashAttribute("success", "教师 " + teacher.getTeacherName() + " 最大指导学生数已更新为 " + maxStudents);
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "更新失败: " + e.getMessage());
+        }
+        return "redirect:/admin/users";
+    }
+
     // ==================== Statistics ====================
     @GetMapping("/statistics")
     public String statistics(HttpSession session, Model model) {
