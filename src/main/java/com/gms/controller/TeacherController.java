@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 public class TeacherController {
 
     @Autowired private TeacherService teacherService;
+    @Autowired private TeacherMapper teacherMapper;
     @Autowired private TopicService topicService;
     @Autowired private TopicMapper topicMapper;
     @Autowired private SelectionService selectionService;
@@ -48,7 +49,11 @@ public class TeacherController {
             return "redirect:/login";
         }
         String teacherId = getTeacherId(session);
-        Teacher teacher = teacherService.getById(teacherId);
+        // 使用联表查询获取院系名称（deptName），而非简单的 getById
+        Teacher teacher = teacherMapper.selectByTeacherIdWithInfo(teacherId);
+        if (teacher == null) {
+            teacher = teacherService.getById(teacherId);
+        }
         model.addAttribute("teacher", teacher);
 
         List<Topic> myTopics = topicMapper.selectByTeacherId(teacherId);
