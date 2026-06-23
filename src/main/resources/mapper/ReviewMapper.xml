@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gms.mapper.ReviewMapper">
+    <select id="selectByTeacherId" resultType="com.gms.entity.Review">
+        SELECT r.*, te.teacher_name AS teacherName, stu.stu_name AS stuName
+        FROM review r
+        LEFT JOIN teacher te ON r.teacher_id = te.teacher_id
+        LEFT JOIN submission sub ON r.submission_id = sub.submission_id
+        LEFT JOIN selection sel ON sub.selection_id = sel.selection_id
+        LEFT JOIN student stu ON sel.stu_id = stu.stu_id
+        WHERE r.teacher_id = #{teacherId}
+        ORDER BY r.review_time DESC
+    </select>
+
+    <select id="selectBySubmissionId" resultType="com.gms.entity.Review">
+        SELECT r.*, te.teacher_name AS teacherName, stu.stu_name AS stuName
+        FROM review r
+        LEFT JOIN teacher te ON r.teacher_id = te.teacher_id
+        LEFT JOIN submission sub ON r.submission_id = sub.submission_id
+        LEFT JOIN selection sel ON sub.selection_id = sel.selection_id
+        LEFT JOIN student stu ON sel.stu_id = stu.stu_id
+        WHERE r.submission_id = #{submissionId}
+    </select>
+
+    <select id="selectBySubmissionIds" resultType="com.gms.entity.Review">
+        SELECT r.*, te.teacher_name AS teacherName, stu.stu_name AS stuName
+        FROM review r
+        LEFT JOIN teacher te ON r.teacher_id = te.teacher_id
+        LEFT JOIN submission sub ON r.submission_id = sub.submission_id
+        LEFT JOIN selection sel ON sub.selection_id = sel.selection_id
+        LEFT JOIN student stu ON sel.stu_id = stu.stu_id
+        WHERE r.submission_id IN
+        <foreach collection="submissionIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY r.review_time DESC
+    </select>
+</mapper>

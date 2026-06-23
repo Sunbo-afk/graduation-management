@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gms.mapper.TopicMapper">
+    <select id="selectAvailableTopics" resultType="com.gms.entity.Topic">
+        SELECT t.*, te.teacher_name AS teacherName
+        FROM topic t
+        LEFT JOIN teacher te ON t.teacher_id = te.teacher_id
+        WHERE t.status = 0
+        <if test="keyword != null and keyword != ''">
+            AND (t.title LIKE CONCAT('%', #{keyword}, '%') OR t.description LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="direction != null and direction != ''">
+            AND t.direction = #{direction}
+        </if>
+        <if test="teacherId != null and teacherId != ''">
+            AND t.teacher_id = #{teacherId}
+        </if>
+        ORDER BY t.created_at DESC
+    </select>
+
+    <select id="selectByTeacherId" resultType="com.gms.entity.Topic">
+        SELECT t.*, te.teacher_name AS teacherName
+        FROM topic t
+        LEFT JOIN teacher te ON t.teacher_id = te.teacher_id
+        WHERE t.teacher_id = #{teacherId}
+        ORDER BY t.created_at DESC
+    </select>
+
+    <select id="selectDistinctDirections" resultType="java.lang.String">
+        SELECT DISTINCT direction FROM topic WHERE direction IS NOT NULL AND direction != '' ORDER BY direction
+    </select>
+</mapper>

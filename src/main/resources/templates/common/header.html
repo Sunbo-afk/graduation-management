@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <nav class="navbar navbar-light px-4" th:fragment="navbar" style="margin-left:250px;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+        <span class="navbar-brand mb-0 h4">毕业设计管理系统</span>
+        <div class="d-flex align-items-center">
+            <span th:text="${session.loginUser?.userName}" class="me-3"></span>
+            <span class="badge bg-info me-3" th:text="${session.loginUser?.role}"></span>
+            <a href="/logout" class="btn btn-outline-danger btn-sm">退出</a>
+        </div>
+    </nav>
+</body>
+</html>

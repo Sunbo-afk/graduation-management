@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教师首页 - 毕业设计管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-light px-4">
+        <span class="navbar-brand mb-0 h4">毕业设计管理系统</span>
+        <div class="d-flex align-items-center">
+            <span th:text="${session.loginUser?.userName}" class="me-3"></span>
+            <span class="badge bg-secondary me-3">教师</span>
+            <a href="/logout" class="btn btn-outline-secondary btn-sm">退出</a>
+        </div>
+    </nav>
+    <div class="sidebar">
+        <div class="nav-title">教师功能</div>
+        <a href="/teacher/index" class="active"><i class="bi bi-speedometer2 me-2"></i>首页</a>
+        <a href="/teacher/students"><i class="bi bi-people me-2"></i>指导学生</a>
+        <a href="/teacher/topics"><i class="bi bi-journal-text me-2"></i>我的题目</a>
+        <a href="/teacher/statistics"><i class="bi bi-bar-chart me-2"></i>统计分析</a>
+    </div>
+    <div class="main-content">
+        <h3 class="mb-1">欢迎回来，<span th:text="${teacher?.teacherName}">老师</span></h3>
+        <p class="text-muted" th:text="'工号：' + ${teacher?.teacherId}"></p>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless mb-0">
+                            <tr><td class="text-muted" style="width:100px">姓名</td><td><strong th:text="${teacher?.teacherName}"></strong></td></tr>
+                            <tr><td class="text-muted">院系</td><td th:text="${teacher?.deptName}"></td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless mb-0">
+                            <tr><td class="text-muted" style="width:100px">研究方向</td><td th:text="${teacher?.researchDirection}"></td></tr>
+                            <tr><td class="text-muted">最多指导学生</td><td th:text="${teacher?.maxStudents}"></td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-center p-3">
+                    <div class="text-muted small">指导学生数</div>
+                    <div class="fs-3 fw-bold" th:text="${studentCount}">0</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center p-3">
+                    <div class="text-muted small">待审阅数</div>
+                    <div class="fs-3 fw-bold" th:text="${pendingReviews}">0</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center p-3">
+                    <div class="text-muted small">已完成数</div>
+                    <div class="fs-3 fw-bold" th:text="${completedCount}">0</div>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="mb-3">快速入口</h5>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <a href="/teacher/students" class="text-decoration-none">
+                    <div class="card"><div class="card-body text-center"><i class="bi bi-people fs-2 d-block mb-1"></i>指导学生</div></div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="/teacher/topics" class="text-decoration-none">
+                    <div class="card"><div class="card-body text-center"><i class="bi bi-journal-text fs-2 d-block mb-1"></i>我的题目</div></div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="/teacher/statistics" class="text-decoration-none">
+                    <div class="card"><div class="card-body text-center"><i class="bi bi-bar-chart fs-2 d-block mb-1"></i>统计分析</div></div>
+                </a>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班级管理 - 毕业设计管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/style.css">
+    
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-light px-4">
+        <span class="navbar-brand mb-0 h4">毕业设计管理系统</span>
+        <div class="d-flex align-items-center">
+            <span th:text="${session.loginUser?.userName}" class="me-3"></span>
+            <span class="badge bg-secondary me-3" th:text="${session.loginUser?.role}"></span>
+            <a href="/logout" class="btn btn-outline-danger btn-sm">退出</a>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="nav-title">管理功能</div>
+        <a href="/admin/index"><i class="bi bi-speedometer2 me-2"></i>首页</a>
+        <a href="/admin/departments"><i class="bi bi-building me-2"></i>系管理</a>
+        <a href="/admin/majors"><i class="bi bi-book me-2"></i>专业管理</a>
+        <a href="/admin/classes" class="active"><i class="bi bi-people me-2"></i>班级管理</a>
+        <a href="/admin/users"><i class="bi bi-person-badge me-2"></i>用户管理</a>
+        <a href="/admin/deadlines"><i class="bi bi-calendar-check me-2"></i>期限管理</a>
+        <div class="nav-title">统计与维护</div>
+        <a href="/admin/statistics"><i class="bi bi-bar-chart me-2"></i>统计分析</a>
+        <a href="/admin/backup"><i class="bi bi-archive me-2"></i>数据库备份</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0"><i class="bi bi-people me-2"></i>班级管理</h4>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#classModal" onclick="resetModal()">
+                <i class="bi bi-plus-lg me-1"></i>添加班级
+            </button>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Classes Table -->
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 80px;">ID</th>
+                            <th>班级名称</th>
+                            <th>所属专业</th>
+                            <th style="width: 100px;">年级</th>
+                            <th style="width: 180px;">创建时间</th>
+                            <th style="width: 160px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="clazz : ${classes}">
+                            <td th:text="${clazz.classId}">1</td>
+                            <td th:text="${clazz.className}">计科2101</td>
+                            <td th:text="${majorMap[clazz.majorId]}">计算机科学与技术</td>
+                            <td th:text="${clazz.grade}">2021</td>
+                            <td th:text="${#temporals.format(clazz.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01 08:00</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-secondary me-1"
+                                        th:attr="data-id=${clazz.classId},data-name=${clazz.className},data-major=${clazz.majorId},data-grade=${clazz.grade}"
+                                        data-bs-toggle="modal" data-bs-target="#classModal"
+                                        onclick="editClass(this)">
+                                    <i class="bi bi-pencil-square"></i> 编辑
+                                </button>
+                                <a class="btn btn-sm btn-outline-danger"
+                                   th:href="@{/admin/class/delete/{id}(id=${clazz.classId})}"
+                                   onclick="return confirm('确定要删除该班级吗？此操作不可恢复。')">
+                                    <i class="bi bi-trash"></i> 删除
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(classes)}">
+                            <td colspan="6" class="text-center text-muted py-4">暂无数据</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Class Modal -->
+    <div class="modal fade" id="classModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form th:action="@{/admin/class/save}" method="post" id="classForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="classModalTitle">添加班级</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="classId" name="classId">
+                        <div class="mb-3">
+                            <label for="className" class="form-label">班级名称</label>
+                            <input type="text" class="form-control" id="className" name="className" required
+                                   placeholder="请输入班级名称">
+                        </div>
+                        <div class="mb-3">
+                            <label for="classMajorId" class="form-label">所属专业</label>
+                            <select class="form-select" id="classMajorId" name="majorId" required>
+                                <option value="">请选择所属专业</option>
+                                <option th:each="m : ${majors}"
+                                        th:value="${m.majorId}"
+                                        th:text="${m.majorName}">计算机科学与技术</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="classGrade" class="form-label">年级</label>
+                            <input type="text" class="form-control" id="classGrade" name="grade" required
+                                   placeholder="请输入年级，如：2021">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function editClass(btn) {
+            document.getElementById('classModalTitle').textContent = '编辑班级';
+            document.getElementById('classId').value = btn.dataset.id;
+            document.getElementById('className').value = btn.dataset.name;
+            document.getElementById('classMajorId').value = btn.dataset.major;
+            document.getElementById('classGrade').value = btn.dataset.grade;
+        }
+
+        function resetModal() {
+            document.getElementById('classModalTitle').textContent = '添加班级';
+            document.getElementById('classForm').reset();
+            document.getElementById('classId').value = '';
+        }
+    </script>
+</body>
+</html>

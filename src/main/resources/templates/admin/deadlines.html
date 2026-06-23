@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>流程期限管理 - 毕业设计管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-light px-4">
+        <span class="navbar-brand mb-0 h4">毕业设计管理系统</span>
+        <div class="d-flex align-items-center">
+            <span th:text="${session.loginUser?.userName}" class="me-3"></span>
+            <span class="badge bg-secondary me-3" th:text="${session.loginUser?.role}"></span>
+            <a href="/logout" class="btn btn-outline-danger btn-sm">退出</a>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="nav-title">管理功能</div>
+        <a href="/admin/index"><i class="bi bi-speedometer2 me-2"></i>首页</a>
+        <a href="/admin/departments"><i class="bi bi-building me-2"></i>系管理</a>
+        <a href="/admin/majors"><i class="bi bi-book me-2"></i>专业管理</a>
+        <a href="/admin/classes"><i class="bi bi-people me-2"></i>班级管理</a>
+        <a href="/admin/users"><i class="bi bi-person-badge me-2"></i>用户管理</a>
+        <a href="/admin/deadlines" class="active"><i class="bi bi-calendar-check me-2"></i>期限管理</a>
+        <div class="nav-title">统计与维护</div>
+        <a href="/admin/statistics"><i class="bi bi-bar-chart me-2"></i>统计分析</a>
+        <a href="/admin/backup"><i class="bi bi-archive me-2"></i>数据库备份</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0"><i class="bi bi-calendar-check me-2"></i>流程期限管理</h4>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#deadlineModal" onclick="resetModal()">
+                <i class="bi bi-plus-lg me-1"></i>添加期限
+            </button>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Deadlines Table -->
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 80px;">ID</th>
+                            <th style="width: 120px;">阶段</th>
+                            <th style="width: 130px;">开始日期</th>
+                            <th style="width: 130px;">截止日期</th>
+                            <th>说明</th>
+                            <th style="width: 130px;">学期</th>
+                            <th style="width: 160px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="dl : ${deadlines}">
+                            <td th:text="${dl.deadlineId}">1</td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${dl.stage == '选题' ? 'bg-primary' :
+                                                        dl.stage == '开题报告' ? 'bg-secondary' :
+                                                        dl.stage == '中期检查' ? 'bg-warning text-dark' :
+                                                        dl.stage == '初稿' ? 'bg-secondary' :
+                                                        'bg-success'}"
+                                      th:text="${dl.stage}">选题</span>
+                            </td>
+                            <td th:text="${#temporals.format(dl.startDate, 'yyyy-MM-dd')}">2025-03-01</td>
+                            <td th:text="${#temporals.format(dl.endDate, 'yyyy-MM-dd')}">2025-06-15</td>
+                            <td th:text="${dl.description}">说明文字</td>
+                            <td th:text="${dl.semester}">2025-2026-2</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-secondary me-1"
+                                        th:attr="data-id=${dl.deadlineId},data-stage=${dl.stage},data-start=${#temporals.format(dl.startDate, 'yyyy-MM-dd')},data-end=${#temporals.format(dl.endDate, 'yyyy-MM-dd')},data-desc=${dl.description},data-semester=${dl.semester}"
+                                        data-bs-toggle="modal" data-bs-target="#deadlineModal"
+                                        onclick="editDeadline(this)">
+                                    <i class="bi bi-pencil-square"></i> 编辑
+                                </button>
+                                <a class="btn btn-sm btn-outline-danger"
+                                   th:href="@{/admin/deadline/delete/{id}(id=${dl.deadlineId})}"
+                                   onclick="return confirm('确定要删除该期限吗？此操作不可恢复。')">
+                                    <i class="bi bi-trash"></i> 删除
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(deadlines)}">
+                            <td colspan="7" class="text-center text-muted py-4">暂无期限数据</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Deadline Modal -->
+    <div class="modal fade" id="deadlineModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form th:action="@{/admin/deadline/save}" method="post" id="deadlineForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deadlineModalTitle">添加期限</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="deadlineId" name="deadlineId">
+                        <div class="mb-3">
+                            <label for="deadlineStage" class="form-label">阶段</label>
+                            <select class="form-select" id="deadlineStage" name="stage" required>
+                                <option value="">请选择阶段</option>
+                                <option value="选题">选题</option>
+                                <option value="开题报告">开题报告</option>
+                                <option value="中期检查">中期检查</option>
+                                <option value="初稿">初稿</option>
+                                <option value="终稿">终稿</option>
+                            </select>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="deadlineStartDate" class="form-label">开始日期</label>
+                                <input type="date" class="form-control" id="deadlineStartDate" name="startDate" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="deadlineEndDate" class="form-label">截止日期</label>
+                                <input type="date" class="form-control" id="deadlineEndDate" name="endDate" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="deadlineDescription" class="form-label">说明</label>
+                            <textarea class="form-control" id="deadlineDescription" name="description" rows="2"
+                                      placeholder="请输入期限说明"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="deadlineSemester" class="form-label">学期</label>
+                            <input type="text" class="form-control" id="deadlineSemester" name="semester" required
+                                   placeholder="请输入学期，如：2025-2026-2">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function editDeadline(btn) {
+            document.getElementById('deadlineModalTitle').textContent = '编辑期限';
+            document.getElementById('deadlineId').value = btn.dataset.id;
+            document.getElementById('deadlineStage').value = btn.dataset.stage;
+            document.getElementById('deadlineStartDate').value = btn.dataset.start;
+            document.getElementById('deadlineEndDate').value = btn.dataset.end;
+            document.getElementById('deadlineDescription').value = btn.dataset.desc;
+            document.getElementById('deadlineSemester').value = btn.dataset.semester;
+        }
+
+        function resetModal() {
+            document.getElementById('deadlineModalTitle').textContent = '添加期限';
+            document.getElementById('deadlineForm').reset();
+            document.getElementById('deadlineId').value = '';
+        }
+    </script>
+</body>
+</html>

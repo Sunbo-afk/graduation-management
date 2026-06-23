@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gms.mapper.SubmissionMapper">
+    <select id="selectBySelectionId" resultType="com.gms.entity.Submission">
+        SELECT sub.submission_id, sub.selection_id, sub.stage, sub.file_path, sub.description,
+               sub.submit_time, sub.status, sub.version
+        FROM submission sub
+        WHERE sub.selection_id = #{selectionId}
+        ORDER BY sub.submit_time DESC
+    </select>
+
+    <select id="selectBySelectionIds" resultType="com.gms.entity.Submission">
+        SELECT * FROM submission
+        WHERE selection_id IN
+        <foreach collection="selectionIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY submit_time DESC
+    </select>
+</mapper>

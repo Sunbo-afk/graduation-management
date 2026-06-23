@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的题目 - 毕业设计管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        
+        .status-dot.unavailable { background-color: #95a5a6; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-light px-4">
+        <span class="navbar-brand mb-0 h4">毕业设计管理系统</span>
+        <div class="d-flex align-items-center">
+            <span th:text="${session.loginUser?.userName}" class="me-3"></span>
+            <span class="badge bg-primary me-3">教师</span>
+            <a href="/logout" class="btn btn-outline-danger btn-sm">退出</a>
+        </div>
+    </nav>
+    <div class="sidebar">
+        <div class="nav-title">教师功能</div>
+        <a href="/teacher/index"><i class="bi bi-speedometer2 me-2"></i>首页</a>
+        <a href="/teacher/students"><i class="bi bi-people me-2"></i>指导学生</a>
+        <a href="/teacher/topics" class="active"><i class="bi bi-journal-text me-2"></i>我的题目</a>
+        <a href="/teacher/statistics"><i class="bi bi-bar-chart me-2"></i>统计分析</a>
+    </div>
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>我的题目</h3>
+            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#addTopicModal">
+                <i class="bi bi-plus-lg me-1"></i>添加题目
+            </button>
+        </div>
+
+        <!-- Topics Table -->
+        <div th:if="${topics != null and !topics.isEmpty()}">
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;">#</th>
+                                    <th>标题</th>
+                                    <th>方向</th>
+                                    <th>状态</th>
+                                    <th>已选/最大</th>
+                                    <th>描述</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="topic, iterStat : ${topics}">
+                                    <td th:text="${iterStat.count}">1</td>
+                                    <td>
+                                        <span th:text="${topic.title}" style="max-width: 200px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">标题</span>
+                                    </td>
+                                    <td><span class="badge bg-secondary" th:text="${topic.direction}">方向</span></td>
+                                    <td>
+                                        <span class="status-dot" th:classappend="${topic.status == '可选' ? 'available' : 'unavailable'}"></span>
+                                        <span th:text="${topic.status}">状态</span>
+                                    </td>
+                                    <td>
+                                        <span>0</span>
+                                        /
+                                        <span th:text="${topic.maxSelect}">0</span>
+                                    </td>
+                                    <td>
+                                        <span th:text="${topic.description}" style="max-width: 180px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">描述</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary btn-sm" type="button"
+                                                    data-bs-toggle="modal" data-bs-target="#editTopicModal"
+                                                    th:attr="data-id=${topic.topicId},data-title=${topic.title},data-desc=${topic.description},data-dir=${topic.direction},data-max=${topic.maxSelect}"
+                                                    onclick="fillEditForm(this)">
+                                                <i class="bi bi-pencil me-1"></i>编辑
+                                            </button>
+                                            <a th:href="@{/teacher/topic/delete/{id}(id=${topic.topicId})}"
+                                               class="btn btn-outline-danger btn-sm"
+                                               onclick="return confirm('确定要删除该题目吗？此操作不可撤销。');">
+                                                <i class="bi bi-trash me-1"></i>删除
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Topics -->
+        <div th:unless="${topics != null and !topics.isEmpty()}">
+            <div class="text-center py-5">
+                <i class="bi bi-journal-x display-1 text-muted d-block mb-3"></i>
+                <h5 class="text-muted">您还没有发布任何题目</h5>
+                <p class="text-muted">点击"添加题目"按钮发布毕业设计题目供学生选择</p>
+                <button class="btn btn-primary mt-2" type="button" data-bs-toggle="modal" data-bs-target="#addTopicModal">
+                    <i class="bi bi-plus-lg me-1"></i>添加第一道题目
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Topic Modal -->
+    <div class="modal fade" id="addTopicModal" tabindex="-1" aria-labelledby="addTopicModalLabel">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="addTopicModalLabel"><i class="bi bi-plus-circle me-1"></i>添加题目</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/teacher/topic/save}" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="addTitle" class="form-label">题目名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="addTitle" name="title"
+                                   placeholder="请输入毕业设计题目名称" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="addDescription" class="form-label">题目描述</label>
+                            <textarea class="form-control" id="addDescription" name="description" rows="4"
+                                      placeholder="请详细描述题目要求、预期目标、技术栈等信息..."></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="addDirection" class="form-label">研究方向 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="addDirection" name="direction"
+                                       placeholder="如：Web开发、人工智能、数据分析等" required>
+                                <div class="form-text">输入研究方向名称、或已有方向将自动匹配</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="addMaxSelect" class="form-label">最大可选人数 <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="addMaxSelect" name="maxSelect"
+                                       min="1" max="10" value="1" required>
+                                <div class="form-text">设置允许选择此题目的人数上限</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>确认添加</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Topic Modal -->
+    <div class="modal fade" id="editTopicModal" tabindex="-1" aria-labelledby="editTopicModalLabel">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title" id="editTopicModalLabel"><i class="bi bi-pencil-square me-1"></i>编辑题目</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/teacher/topic/save}" method="post">
+                    <input type="hidden" id="editTopicId" name="topicId">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editTitle" class="form-label">题目名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editTitle" name="title"
+                                   placeholder="请输入毕业设计题目名称" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDescription" class="form-label">题目描述</label>
+                            <textarea class="form-control" id="editDescription" name="description" rows="4"
+                                      placeholder="请详细描述题目要求、预期目标、技术栈等信息..."></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editDirection" class="form-label">研究方向 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="editDirection" name="direction"
+                                       placeholder="如：Web开发、人工智能、数据分析等" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editMaxSelect" class="form-label">最大可选人数 <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="editMaxSelect" name="maxSelect"
+                                       min="1" max="10" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-warning"><i class="bi bi-check-lg me-1"></i>保存修改</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Fill the edit modal with topic data
+        function fillEditForm(btn) {
+            document.getElementById('editTopicId').value = btn.dataset.id;
+            document.getElementById('editTitle').value = btn.dataset.title;
+            document.getElementById('editDescription').value = btn.dataset.desc;
+            document.getElementById('editDirection').value = btn.dataset.dir;
+            document.getElementById('editMaxSelect').value = btn.dataset.max;
+        }
+    </script>
+</body>
+</html>

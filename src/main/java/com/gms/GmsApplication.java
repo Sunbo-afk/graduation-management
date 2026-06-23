@@ -1,0 +1,13 @@
+package com.gms;
+
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+@MapperScan("com.gms.mapper")
+public class GmsApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(GmsApplication.class, args);
+    }
+}

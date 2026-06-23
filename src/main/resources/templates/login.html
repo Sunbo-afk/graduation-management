@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>毕业设计管理系统 - 登录</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { background: #f1f3f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 30px 40px; width: 100%; max-width: 420px; }
+        .login-card h2 { font-weight: 600; }
+        .login-card .subtitle { color: #868e96; }
+        .role-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+        .role-option { flex: 1; text-align: center; padding: 10px; border: 2px solid #dee2e6; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .role-option.selected { border-color: #495057; background: #f1f3f5; }
+        .role-option i { font-size: 24px; display: block; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2 class="text-center">毕业设计管理系统</h2>
+        <p class="subtitle text-center">数据库课程设计题目37</p>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <form th:action="@{/login}" method="post">
+            <label class="form-label fw-bold">选择身份</label>
+            <div class="role-selector">
+                <div class="role-option selected" data-role="ADMIN">
+                    <i class="bi bi-shield-lock"></i>管理员
+                </div>
+                <div class="role-option" data-role="TEACHER">
+                    <i class="bi bi-person-workspace"></i>教师
+                </div>
+                <div class="role-option" data-role="STUDENT">
+                    <i class="bi bi-mortarboard"></i>学生
+                </div>
+            </div>
+            <input type="hidden" name="role" id="roleInput" value="ADMIN">
+
+            <div class="mb-3">
+                <label for="userId" class="form-label">账号</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    <input type="text" class="form-control" id="userId" name="userId"
+                           placeholder="请输入学号/工号/用户名" required autofocus>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label for="password" class="form-label">密码</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input type="password" class="form-control" id="password" name="password"
+                           placeholder="请输入密码" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-dark w-100">登 录</button>
+        </form>
+
+        <p class="text-center mt-2"><a href="/register">没有账号？立即注册</a></p>
+        <p class="text-center mt-2 text-muted" style="font-size: 0.85rem;">默认密码：123456</p>
+    </div>
+
+    <script>
+        document.querySelectorAll('.role-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                document.getElementById('roleInput').value = this.dataset.role;
+            });
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
