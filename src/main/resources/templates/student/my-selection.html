@@ -106,7 +106,7 @@
                     <h5 class="card-title mb-0"><i class="bi bi-upload me-2"></i>提交新文档</h5>
                 </div>
                 <div class="card-body">
-                    <form th:action="@{/student/submit}" method="post">
+                    <form th:action="@{/student/submit}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="selectionId" th:value="${selection?.selectionId}">
                         <div class="row g-3">
                             <div class="col-md-4">
@@ -120,11 +120,16 @@
                                 </select>
                             </div>
                             <div class="col-md-5">
-                                <label class="form-label">文件路径/链接 <span class="text-danger">*</span></label>
-                                <input type="text" name="filePath" class="form-control" placeholder="文件路径或网盘链接" required>
+                                <label class="form-label">上传文件 <span class="text-danger">*</span></label>
+                                <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.7z,.txt,.jpg,.png">
+                                <div class="form-text">支持 PDF、Word、PPT、压缩包等格式，最大 50MB</div>
                             </div>
                             <div class="col-md-3 d-flex align-items-end">
                                 <button type="submit" class="btn btn-dark w-100">提交文档</button>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">或粘贴文件链接</label>
+                                <input type="text" name="filePath" class="form-control" placeholder="如网盘链接，不上传文件时填写此项">
                             </div>
                             <div class="col-12">
                                 <label class="form-label">提交说明</label>
@@ -161,7 +166,12 @@
                                     <td th:text="${'v' + sub.version}">v1</td>
                                     <td th:text="${#temporals.format(sub.submitTime, 'yyyy-MM-dd HH:mm')}">2024-01-01</td>
                                     <td>
-                                        <a th:href="${sub.filePath}" target="_blank" class="text-truncate d-inline-block" style="max-width: 200px;"
+                                        <!-- Uploaded file: link to /files/... ; external URL: open new tab -->
+                                        <a th:if="${sub.filePath != null && (sub.filePath.startsWith('/files/') || sub.filePath.startsWith('files/'))}"
+                                           th:href="${sub.filePath}" class="text-truncate d-inline-block" style="max-width: 200px;"
+                                           th:text="${sub.filePath}">文件路径</a>
+                                        <a th:unless="${sub.filePath != null && (sub.filePath.startsWith('/files/') || sub.filePath.startsWith('files/'))}"
+                                           th:href="${sub.filePath}" target="_blank" class="text-truncate d-inline-block" style="max-width: 200px;"
                                            th:text="${sub.filePath}">文件路径</a>
                                     </td>
                                     <td th:text="${sub.description}">说明</td>

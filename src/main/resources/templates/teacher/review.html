@@ -90,7 +90,10 @@
                                     <tr>
                                         <td class="text-muted">文件链接</td>
                                         <td class="file-link">
-                                            <a th:href="${submission.filePath}" target="_blank" th:text="${submission.filePath}">文件路径</a>
+                                            <a th:if="${submission.filePath != null && (submission.filePath.startsWith('/files/') || submission.filePath.startsWith('files/'))}"
+                                               th:href="${submission.filePath}" th:text="${submission.filePath}">文件路径</a>
+                                            <a th:unless="${submission.filePath != null && (submission.filePath.startsWith('/files/') || submission.filePath.startsWith('files/'))}"
+                                               th:href="${submission.filePath}" target="_blank" th:text="${submission.filePath}">文件路径</a>
                                         </td>
                                     </tr>
                                     <tr>
@@ -109,7 +112,9 @@
                             </table>
                         </div>
                         <div class="card-footer bg-white">
-                            <a th:href="${submission.filePath}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <a th:href="${submission.filePath}"
+                               th:target="${submission.filePath != null && (submission.filePath.startsWith('/files/') || submission.filePath.startsWith('files/')) ? '_self' : '_blank'}"
+                               class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-download me-1"></i>下载/查看文件
                             </a>
                         </div>

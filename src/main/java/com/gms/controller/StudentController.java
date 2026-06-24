@@ -6,18 +6,32 @@ import com.gms.mapper.ReviewMapper;
 import com.gms.mapper.TopicMapper;
 import com.gms.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Controller
@@ -34,6 +48,12 @@ public class StudentController {
     @Autowired private SubmissionMapper submissionMapper;
     @Autowired private ReviewMapper reviewMapper;
     @Autowired private DeadlineService deadlineService;
+
+    @Value("${file.upload.dir:${user.dir}/uploads}")
+    private String uploadDir;
+
+    @Value("${file.upload.url-prefix:/files/}")
+    private String urlPrefix;
 
     private boolean isStudent(HttpSession session) {
         Map<String, Object> user = (Map<String, Object>) session.getAttribute("loginUser");
@@ -145,20 +165,52 @@ public class StudentController {
     @PostMapping("/submit")
     public String submitDocument(@RequestParam Integer selectionId,
                                  @RequestParam String stage,
-                                 @RequestParam String filePath,
-                                 @RequestParam String description,
+                                 @RequestParam(required = false) String filePath,
+                                 @RequestParam(required = false) String description,
+                                 @RequestParam(required = false) MultipartFile file,
                                  HttpSession session,
                                  RedirectAttributes redirectAttributes) {
         if (!isStudent(session)) {
             return "redirect:/login";
         }
         try {
-            Map<String, Object> result = submissionService.submitDocument(selectionId, stage, filePath, description);
+            String finalFilePath = filePath; // may be null
+
+            // If a file was actually uploaded, save it to disk
+            if (file != null && !file.isEmpty()) {
+                String originalFilename = file.getOriginalFilename();
+                String ext = "";
+                if (originalFilename != null && originalFilename.contains(".")) {
+                    ext = originalFilename.substring(originalFilename.lastIndexOf("."));
+                }
+                // Build directory: uploads/{selectionId}/{stage}/
+                String relativeDir = selectionId + "/" + stage.replaceAll("[\\\\/:*?\"<>|]", "_");
+                Path uploadPath = Paths.get(uploadDir, relativeDir);
+                Files.createDirectories(uploadPath);
+
+                // Unique filename to avoid collisions
+                String savedName = UUID.randomUUID().toString().substring(0, 8) + "_" + originalFilename;
+                Path targetPath = uploadPath.resolve(savedName);
+                file.transferTo(targetPath.toFile());
+
+                // Store as /files/{selectionId}/{stage}/{savedName}
+                finalFilePath = urlPrefix + relativeDir.replace('\\', '/') + "/" + savedName;
+            }
+
+            // Require either a file or a URL
+            if (finalFilePath == null || finalFilePath.trim().isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "请上传文件或填写文件链接");
+                return "redirect:/student/my-selection";
+            }
+
+            Map<String, Object> result = submissionService.submitDocument(selectionId, stage, finalFilePath, description != null ? description : "");
             if ((Boolean) result.get("success")) {
                 redirectAttributes.addFlashAttribute("success", "文档提交成功");
             } else {
                 redirectAttributes.addFlashAttribute("error", result.get("message"));
             }
+        } catch (IOException e) {
+            redirectAttributes.addFlashAttribute("error", "文件上传失败: " + e.getMessage());
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "提交失败: " + e.getMessage());
         }
@@ -246,5 +298,53 @@ public class StudentController {
         model.addAttribute("stageScores", stageScores);
         model.addAttribute("overallScore", overallScore);
         return "student/reviews";
+    }
+
+    // ==================== File Download ====================
+    @GetMapping("/download")
+    @ResponseBody
+    public ResponseEntity<Resource> downloadFile(@RequestParam String path, HttpSession session) {
+        if (!isStudent(session)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        // Remove the /files/ prefix to get the relative path
+        String relativePath = path;
+        if (relativePath.startsWith(urlPrefix)) {
+            relativePath = relativePath.substring(urlPrefix.length());
+        }
+
+        Path filePath = Paths.get(uploadDir, relativePath);
+        File file = filePath.toFile();
+        if (!file.exists() || !file.isFile()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Resource resource = new FileSystemResource(file);
+        String filename = file.getName();
+
+        // Try to detect content type
+        String contentType;
+        try {
+            contentType = Files.probeContentType(filePath);
+        } catch (IOException e) {
+            contentType = "application/octet-stream";
+        }
+        if (contentType == null) {
+            contentType = "application/octet-stream";
+        }
+
+        String encodedFilename;
+        try {
+            encodedFilename = URLEncoder.encode(filename, "UTF-8");
+        } catch (java.io.UnsupportedEncodingException e) {
+            encodedFilename = filename; // UTF-8 is always supported, never reaches here
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"" + encodedFilename + "\"")
+                .body(resource);
     }
 }

@@ -132,7 +132,9 @@
                                                         <i class="bi bi-card-text me-1"></i><span th:text="${sub.description}">说明</span>
                                                     </p>
                                                     <p class="mb-0 small">
-                                                        <a th:href="${sub.filePath}" target="_blank" class="text-primary">
+                                                        <a th:href="${sub.filePath}"
+                                                           th:target="${sub.filePath != null && (sub.filePath.startsWith('/files/') || sub.filePath.startsWith('files/')) ? '_self' : '_blank'}"
+                                                           class="text-primary">
                                                             <i class="bi bi-file-earmark me-1"></i>查看文件
                                                         </a>
                                                     </p>
